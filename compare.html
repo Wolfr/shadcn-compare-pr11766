@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>shadcn/ui — PR #11766 vs master</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; background: #0b0b0b; color: #e5e5e5; }
+    header { height: 48px; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid #222; font-size: 13px; gap: 12px; }
+    header strong { font-weight: 600; }
+    header .sep { flex: 1; }
+    header select, header button { background: #1a1a1a; color: #e5e5e5; border: 1px solid #333; border-radius: 6px; padding: 4px 8px; font-family: ui-monospace, monospace; font-size: 12px; cursor: pointer; }
+    header select:focus, header button:focus { outline: none; border-color: #6aa7ff; }
+    header button[aria-pressed="true"] { border-color: #6aa7ff; color: #fff; }
+    header .toggles { display: flex; gap: 8px; align-items: center; }
+    header .toggles label { display: inline-flex; align-items: center; gap: 4px; font-family: ui-monospace, monospace; font-size: 11px; color: #888; cursor: pointer; user-select: none; }
+    header .toggles input { accent-color: #6aa7ff; cursor: pointer; }
+    header .toggles label:has(input:checked) { color: #e5e5e5; }
+    .help { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid #333; border-radius: 50%; color: #888; font-size: 11px; font-family: ui-monospace, monospace; cursor: help; user-select: none; }
+    .help:hover { color: #e5e5e5; border-color: #555; }
+    .help .tip { position: absolute; top: calc(100% + 8px); right: 0; width: 360px; padding: 10px 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #ccc; font-size: 12px; line-height: 1.45; opacity: 0; pointer-events: none; transition: opacity 120ms ease; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,.5); }
+    .help .tip strong { color: #e5e5e5; }
+    .help .tip code { background: #0b0b0b; border: 1px solid #2a2a2a; border-radius: 3px; padding: 0 4px; font-family: ui-monospace, monospace; font-size: 11px; }
+    .help:hover .tip, .help:focus-within .tip { opacity: 1; pointer-events: auto; }
+    main { display: grid; grid-template-columns: repeat(2, 1fr); height: calc(100% - 48px); }
+    .pane { position: relative; display: flex; flex-direction: column; border-right: 1px solid #222; min-width: 0; }
+    .pane:last-child { border-right: none; }
+    .pane-label { position: absolute; top: 8px; right: 8px; z-index: 2; padding: 2px 8px; font-size: 11px; font-family: ui-monospace, monospace; background: rgba(0,0,0,.7); color: #fff; border-radius: 4px; pointer-events: none; }
+    iframe { flex: 1; width: 100%; border: none; background: white; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>PR #11766 vs master</strong>
+    <select id="style" aria-label="Style"></select>
+    <select id="route" aria-label="Component"></select>
+    <button id="theme" aria-pressed="false">theme: light</button>
+    <select id="tokens" aria-label="Token palette"></select>
+    <div class="toggles">
+      <label><input type="checkbox" id="scroll-sync" checked> sync scroll</label>
+    </div>
+    <div class="sep"></div>
+    <span class="help" tabindex="0" aria-label="About this tool">?<span class="tip">
+      <strong>shadcn/ui — PR #11766 vs master</strong><br/><br/>
+      Left pane is <code>main</code> as of <code>7c9eaba</code>; right pane is the
+      same components with <a href="https://github.com/shadcn-ui/ui/pull/11766" style="color:#6aa7ff">PR #11766</a>
+      (<em>align input token usage with control semantics</em>) applied.<br/><br/>
+      The PR only swaps <code>input</code>-token utilities for <code>border</code>/<code>muted</code>
+      ones on non-input surfaces, so the visible differences live in
+      <strong>button (outline)</strong>, <strong>button group</strong>, <strong>toggle</strong>,
+      <strong>switch</strong>, <strong>slider</strong>, <strong>badge</strong>,
+      <strong>kbd</strong> and <strong>field</strong> — several of them
+      <strong>dark mode only</strong>. Use the theme button.<br/><br/>
+      All eight styles ship <code>--border</code> and <code>--input</code> with the
+      <em>same</em> value in light mode, so many substitutions render as a no-op here.
+      The <strong>tokens</strong> picker (<code>t</code>) overrides
+      <code>--border</code>/<code>--input</code>/<code>--muted</code> so they pull apart:
+      <code>contrast</code> is a plausible consumer theme, <code>hue</code> gives each
+      token its own colour so every surface shows which one it reads.<br/><br/>
+      Pick a style and a component; <code>↑</code>/<code>↓</code> steps through components.
+    </span></span>
+  </header>
+  <main id="grid">
+    <div class="pane" data-pane="master"><span class="pane-label">master</span><iframe id="frame-master" title="master"></iframe></div>
+    <div class="pane" data-pane="pr"><span class="pane-label">PR #11766</span><iframe id="frame-pr" title="pr"></iframe></div>
+  </main>
+  <script>
+    const STYLES = ["vega", "nova", "luma", "rhea", "lyra", "maia", "mira", "sera"];
+    const ORIGINS = { master: "http://localhost:5290", pr: "http://localhost:5291" };
+    // Components the PR actually touches, hoisted to the top of the picker.
+    const TOUCHED = ["button", "button-group", "toggle", "toggle-group", "switch", "slider", "badge", "kbd", "field", "input-group", "calendar"];
+    const ROUTES = ["all","button","button-group","toggle","toggle-group","badge","kbd","spinner","alert","form","field","input","input-group","input-otp","label","textarea","native-select","combobox","checkbox","radio-group","switch","slider","card","item","empty","tabs","accordion","collapsible","avatar","progress","skeleton","separator","aspect-ratio","scroll-area","resizable","table","chart","calendar","carousel","breadcrumb","pagination","navigation-menu","menubar","dropdown-menu","context-menu","command","dialog","alert-dialog","sheet","drawer","popover","hover-card","tooltip","sonner","direction","sidebar"];
+
+    // Pulls --border / --input / --muted apart, so the substitutions stop
+    // rendering as a no-op. Implemented in each app's compare-bridge.ts.
+    const PALETTES = [
+      ["default", "tokens: default"],
+      ["contrast", "tokens: contrast"],
+      ["hue", "tokens: hue"],
+    ];
+
+    const KEY = "shadcn-compare-pr11766";
+    const styleSelect = document.getElementById("style");
+    const routeSelect = document.getElementById("route");
+    const themeButton = document.getElementById("theme");
+    const scrollSync = document.getElementById("scroll-sync");
+    const tokensSelect = document.getElementById("tokens");
+    const frames = { master: document.getElementById("frame-master"), pr: document.getElementById("frame-pr") };
+    const iframes = Object.values(frames);
+
+    const store = {
+      get(name, fallback) {
+        try { const v = localStorage.getItem(`${KEY}:${name}`); return v === null ? fallback : v; } catch { return fallback; }
+      },
+      set(name, value) {
+        try { localStorage.setItem(`${KEY}:${name}`, value); } catch {}
+      },
+    };
+
+    STYLES.forEach(style => {
+      const option = document.createElement("option");
+      option.value = style;
+      option.textContent = style;
+      styleSelect.append(option);
+    });
+
+    PALETTES.forEach(([value, text]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = text;
+      tokensSelect.append(option);
+    });
+
+    function label(route) {
+      const text = route === "all" ? "All" : route.replace(/-/g, " ").replace(/^./, c => c.toUpperCase());
+      return TOUCHED.includes(route) ? `${text} ●` : text;
+    }
+    [...TOUCHED.filter(r => ROUTES.includes(r)), ...ROUTES.filter(r => !TOUCHED.includes(r))].forEach(route => {
+      const option = document.createElement("option");
+      option.value = route;
+      option.textContent = label(route);
+      routeSelect.append(option);
+    });
+
+    let theme = store.get("theme", "light");
+
+    function applyTheme() {
+      themeButton.textContent = `theme: ${theme}`;
+      themeButton.setAttribute("aria-pressed", String(theme === "dark"));
+      iframes.forEach(frame => {
+        try { frame.contentWindow?.postMessage({ type: "theme", value: theme }, "*"); } catch {}
+      });
+      store.set("theme", theme);
+    }
+
+    let tokens = store.get("tokens", "default");
+
+    function applyTokens() {
+      tokensSelect.value = tokens;
+      iframes.forEach(frame => {
+        try { frame.contentWindow?.postMessage({ type: "tokens", value: tokens }, "*"); } catch {}
+      });
+      store.set("tokens", tokens);
+    }
+
+    function loadStyle(style) {
+      styleSelect.value = style;
+      store.set("style", style);
+      for (const [side, frame] of Object.entries(frames)) {
+        frame.src = `${ORIGINS[side]}/${style}.html`;
+      }
+    }
+
+    function broadcastRoute(route) {
+      iframes.forEach(frame => {
+        try { frame.contentWindow?.postMessage({ type: "route", value: route }, "*"); } catch {}
+      });
+    }
+
+    function setRoute(route, { broadcast = true } = {}) {
+      if (!ROUTES.includes(route)) route = "all";
+      routeSelect.value = route;
+      store.set("route", route);
+      if (broadcast) broadcastRoute(route);
+    }
+
+    function shiftRoute(direction) {
+      const options = [...routeSelect.options].map(option => option.value);
+      const index = options.indexOf(routeSelect.value);
+      const next = direction === "down"
+        ? (index + 1) % options.length
+        : (index - 1 + options.length) % options.length;
+      setRoute(options[next]);
+    }
+
+    scrollSync.checked = store.get("scroll-sync", "true") === "true";
+    scrollSync.addEventListener("change", () => store.set("scroll-sync", String(scrollSync.checked)));
+
+    setRoute(store.get("route", "button"), { broadcast: false });
+    loadStyle(STYLES.includes(store.get("style", "")) ? store.get("style") : "vega");
+    applyTheme();
+    if (!PALETTES.some(([value]) => value === tokens)) tokens = "default";
+    applyTokens();
+
+    styleSelect.addEventListener("change", () => loadStyle(styleSelect.value));
+    routeSelect.addEventListener("change", () => setRoute(routeSelect.value));
+    tokensSelect.addEventListener("change", () => {
+      tokens = tokensSelect.value;
+      applyTokens();
+    });
+    themeButton.addEventListener("click", () => {
+      theme = theme === "dark" ? "light" : "dark";
+      applyTheme();
+    });
+
+    window.addEventListener("keydown", (event) => {
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.isContentEditable) return;
+      }
+      if (event.key === "ArrowDown") { event.preventDefault(); shiftRoute("down"); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); shiftRoute("up"); }
+      else if (event.key.toLowerCase() === "d") { themeButton.click(); }
+      else if (event.key.toLowerCase() === "t") {
+        const index = PALETTES.findIndex(([value]) => value === tokens);
+        tokens = PALETTES[(index + 1) % PALETTES.length][0];
+        applyTokens();
+      }
+    });
+
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data || typeof data !== "object") return;
+      if (data.type === "route" && typeof data.value === "string") {
+        setRoute(data.value);
+      } else if (data.type === "scroll" && typeof data.value === "number") {
+        if (!scrollSync.checked) return;
+        iframes.forEach(frame => {
+          if (frame.contentWindow !== event.source) {
+            try { frame.contentWindow?.postMessage(data, "*"); } catch {}
+          }
+        });
+      }
+    });
+
+    iframes.forEach(frame => {
+      frame.addEventListener("load", () => {
+        try {
+          frame.contentWindow?.postMessage({ type: "route", value: routeSelect.value }, "*");
+          frame.contentWindow?.postMessage({ type: "theme", value: theme }, "*");
+          frame.contentWindow?.postMessage({ type: "tokens", value: tokens }, "*");
+        } catch {}
+      });
+    });
+  </script>
+</body>
+</html>

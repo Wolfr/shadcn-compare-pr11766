@@ -1,0 +1,11 @@
+{
+  "name": "shadcn-compare-pr11766-scripts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "postcss": "^8.5.6",
+    "postcss-selector-parser": "^7.1.0",
+    "ts-morph": "^26.0.0",
+    "zod": "^3.24.1"
+  }
+}
