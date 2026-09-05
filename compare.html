@@ -23,6 +23,22 @@
     .help .tip strong { color: #e5e5e5; }
     .help .tip code { background: #0b0b0b; border: 1px solid #2a2a2a; border-radius: 3px; padding: 0 4px; font-family: ui-monospace, monospace; font-size: 11px; }
     .help:hover .tip, .help:focus-within .tip { opacity: 1; pointer-events: auto; }
+    header .swatches { display: inline-flex; gap: 3px; align-items: center; margin-left: 2px; }
+    header .swatches i { width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25); display: block; }
+    .vars { position: relative; display: inline-flex; }
+    .vars-panel { position: absolute; top: calc(100% + 8px); left: 0; z-index: 20; width: 360px; padding: 12px; background: #141414; border: 1px solid #333; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.6); }
+    .vars-panel[hidden] { display: none; }
+    .vars-panel h3 { margin: 0 0 8px; font-size: 11px; font-family: ui-monospace, monospace; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .vars-panel table { width: 100%; border-collapse: collapse; font-family: ui-monospace, monospace; font-size: 11px; }
+    .vars-panel td { padding: 3px 4px; vertical-align: middle; white-space: nowrap; }
+    .vars-panel td.name { color: #ccc; }
+    .vars-panel td.val { color: #777; text-align: right; overflow: hidden; text-overflow: ellipsis; max-width: 165px; }
+    .vars-panel tr.key td.name { color: #6aa7ff; font-weight: 600; }
+    .vars-panel tr.key td.val { color: #aaa; }
+    .vars-panel tr.divider td { border-top: 1px solid #2a2a2a; padding-top: 8px; }
+    .vars-panel .chip { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25); display: block; }
+    .vars-panel p { margin: 10px 0 0; font-size: 11px; line-height: 1.45; color: #777; }
+    .vars-panel p code { background: #0b0b0b; border: 1px solid #2a2a2a; border-radius: 3px; padding: 0 3px; }
     main { display: grid; grid-template-columns: repeat(2, 1fr); height: calc(100% - 48px); }
     .pane { position: relative; display: flex; flex-direction: column; border-right: 1px solid #222; min-width: 0; }
     .pane:last-child { border-right: none; }
@@ -36,7 +52,15 @@
     <select id="style" aria-label="Style"></select>
     <select id="route" aria-label="Component"></select>
     <button id="theme" aria-pressed="false">theme: light</button>
-    <select id="tokens" aria-label="Token palette"></select>
+    <span class="vars">
+      <select id="tokens" aria-label="Token palette"></select>
+      <div class="vars-panel" id="vars-panel" hidden>
+        <h3>Theme variables — <span id="vars-theme"></span></h3>
+        <table id="vars-table"></table>
+        <p id="vars-note"></p>
+      </div>
+    </span>
+    <button id="vars-toggle" aria-expanded="false" aria-controls="vars-panel">vars <span class="swatches" id="vars-swatches"></span></button>
     <div class="toggles">
       <label><input type="checkbox" id="scroll-sync" checked> sync scroll</label>
     </div>
@@ -67,7 +91,12 @@
   </main>
   <script>
     const STYLES = ["vega", "nova", "luma", "rhea", "lyra", "maia", "mira", "sera"];
-    const ORIGINS = { master: "http://localhost:5290", pr: "http://localhost:5291" };
+    // Locally the two sides are separate Vite dev servers; in the deployed
+    // build they are static bundles mounted under /master and /pr.
+    const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+    const ORIGINS = LOCAL
+      ? { master: "http://localhost:5290", pr: "http://localhost:5291" }
+      : { master: "/master", pr: "/pr" };
     // Components the PR actually touches, hoisted to the top of the picker.
     const TOUCHED = ["button", "button-group", "toggle", "toggle-group", "switch", "slider", "badge", "kbd", "field", "input-group", "calendar"];
     const ROUTES = ["all","button","button-group","toggle","toggle-group","badge","kbd","spinner","alert","form","field","input","input-group","input-otp","label","textarea","native-select","combobox","checkbox","radio-group","switch","slider","card","item","empty","tabs","accordion","collapsible","avatar","progress","skeleton","separator","aspect-ratio","scroll-area","resizable","table","chart","calendar","carousel","breadcrumb","pagination","navigation-menu","menubar","dropdown-menu","context-menu","command","dialog","alert-dialog","sheet","drawer","popover","hover-card","tooltip","sonner","direction","sidebar"];
@@ -75,10 +104,13 @@
     // Pulls --border / --input / --muted apart, so the substitutions stop
     // rendering as a no-op. Implemented in each app's compare-bridge.ts.
     const PALETTES = [
-      ["default", "tokens: default"],
-      ["contrast", "tokens: contrast"],
-      ["hue", "tokens: hue"],
+      ["default", "tokens: default", "Values as shipped. <code>--border</code> and <code>--input</code> are <strong>identical in light mode</strong>, so every <code>border-input</code> \u2192 <code>border-border</code> swap is invisible here."],
+      ["contrast", "tokens: contrast", "Neutral, three separated lightnesses \u2014 what a consumer theme that styles its form controls distinctly would look like."],
+      ["hue", "tokens: hue", "One hue per token, so each surface announces which variable it reads. A diagnostic, not a plausible theme."],
     ];
+
+    // The three the PR moves between; shown first and highlighted.
+    const KEY_TOKENS = ["--border", "--input", "--muted"];
 
     const KEY = "shadcn-compare-pr11766";
     const styleSelect = document.getElementById("style");
@@ -86,6 +118,12 @@
     const themeButton = document.getElementById("theme");
     const scrollSync = document.getElementById("scroll-sync");
     const tokensSelect = document.getElementById("tokens");
+    const varsToggle = document.getElementById("vars-toggle");
+    const varsPanel = document.getElementById("vars-panel");
+    const varsTable = document.getElementById("vars-table");
+    const varsThemeLabel = document.getElementById("vars-theme");
+    const varsSwatches = document.getElementById("vars-swatches");
+    const varsNote = document.getElementById("vars-note");
     const frames = { master: document.getElementById("frame-master"), pr: document.getElementById("frame-pr") };
     const iframes = Object.values(frames);
 
@@ -132,6 +170,7 @@
         try { frame.contentWindow?.postMessage({ type: "theme", value: theme }, "*"); } catch {}
       });
       store.set("theme", theme);
+      requestVars();
     }
 
     let tokens = store.get("tokens", "default");
@@ -142,6 +181,69 @@
         try { frame.contentWindow?.postMessage({ type: "tokens", value: tokens }, "*"); } catch {}
       });
       store.set("tokens", tokens);
+      requestVars();
+    }
+
+    // `entries`, not `tokens` — `tokens` is the selected palette mode.
+    function renderVars({ theme: paneTheme, tokens: entries }) {
+      varsThemeLabel.textContent = paneTheme;
+
+      const rows = [...entries].sort((a, b) => {
+        const ai = KEY_TOKENS.indexOf(a.name);
+        const bi = KEY_TOKENS.indexOf(b.name);
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      });
+
+      varsTable.innerHTML = "";
+      rows.forEach((token, index) => {
+        const isKey = KEY_TOKENS.includes(token.name);
+        const row = document.createElement("tr");
+        row.className = [isKey ? "key" : "", index === KEY_TOKENS.length ? "divider" : ""]
+          .filter(Boolean).join(" ");
+
+        const swatch = document.createElement("td");
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        // Checkerboard behind the chip so a translucent token reads as translucent.
+        chip.style.background = token.declared;
+        swatch.style.width = "18px";
+        swatch.style.backgroundImage =
+          "linear-gradient(45deg,#333 25%,transparent 25%,transparent 75%,#333 75%),linear-gradient(45deg,#333 25%,transparent 25%,transparent 75%,#333 75%)";
+        swatch.style.backgroundSize = "8px 8px";
+        swatch.style.backgroundPosition = "0 0, 4px 4px";
+        swatch.append(chip);
+
+        const name = document.createElement("td");
+        name.className = "name";
+        name.textContent = token.name;
+
+        const value = document.createElement("td");
+        value.className = "val";
+        value.textContent = token.declared;
+        value.title = `${token.declared}  →  paints as ${token.resolved}`;
+
+        row.append(swatch, name, value);
+        varsTable.append(row);
+      });
+
+      varsSwatches.innerHTML = "";
+      KEY_TOKENS.forEach(name => {
+        const token = entries.find(entry => entry.name === name);
+        if (!token) return;
+        const chip = document.createElement("i");
+        chip.style.background = token.resolved;
+        chip.title = `${name}: ${token.declared}`;
+        varsSwatches.append(chip);
+      });
+
+      const palette = PALETTES.find(([value]) => value === tokens);
+      varsNote.innerHTML = palette ? palette[2] : "";
+    }
+
+    function requestVars() {
+      try {
+        frames.master.contentWindow?.postMessage({ type: "vars:request" }, "*");
+      } catch {}
     }
 
     function loadStyle(style) {
@@ -185,6 +287,20 @@
 
     styleSelect.addEventListener("change", () => loadStyle(styleSelect.value));
     routeSelect.addEventListener("change", () => setRoute(routeSelect.value));
+    varsToggle.addEventListener("click", () => {
+      const open = varsPanel.hidden;
+      varsPanel.hidden = !open;
+      varsToggle.setAttribute("aria-expanded", String(open));
+      if (open) requestVars();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (varsPanel.hidden) return;
+      if (varsPanel.contains(event.target) || varsToggle.contains(event.target)) return;
+      varsPanel.hidden = true;
+      varsToggle.setAttribute("aria-expanded", "false");
+    });
+
     tokensSelect.addEventListener("change", () => {
       tokens = tokensSelect.value;
       applyTokens();
@@ -212,6 +328,10 @@
     window.addEventListener("message", (event) => {
       const data = event.data;
       if (!data || typeof data !== "object") return;
+      if (data.type === "vars" && Array.isArray(data.tokens)) {
+        if (event.source === frames.master.contentWindow) renderVars(data);
+        return;
+      }
       if (data.type === "route" && typeof data.value === "string") {
         setRoute(data.value);
       } else if (data.type === "scroll" && typeof data.value === "number") {

@@ -52,6 +52,38 @@ The override uses `:root:root` / `:root:root.dark` selectors so it outranks both
 same control on `background`, a real `Card`, and a `bg-muted` panel — this is
 the only way to see the translucent → opaque consequence.
 
+**Variables panel** (`vars` button). `compare-bridge.ts` reports the resolved
+values of a curated token list to the shell on load, on palette change, and
+whenever `documentElement`'s class list changes (a MutationObserver, since the
+theme flip is asynchronous). Values are read with `getComputedStyle` plus a
+hidden probe element, so translucent tokens report both their authored value and
+what they actually paint as. Never hardcode these in the shell — the point is
+that they are read live.
+
+Only the master pane is asked; both panes always carry identical token values,
+because the PR changes which token a component reads, not what the tokens are.
+
+## Deployment
+
+Static-assets-only Cloudflare Worker (`wrangler.jsonc`), deployed to
+`shadcn-compare-pr11766.johan-457.workers.dev`.
+
+```bash
+npm run build && npm run deploy
+```
+
+`scripts/build-site.sh` builds each app with `--base=/master/` or `--base=/pr/`
+into `dist/`, then copies the shell in. Two things depend on that layout:
+
+- `compare.html` resolves iframe origins by hostname — dev servers on localhost,
+  `/master` and `/pr` everywhere else.
+- The apps' own `index.html` link to styles **relatively** (`vega.html`) so they
+  work under the base prefix, but to the shell **absolutely** (`/compare.html`),
+  which lives at the root. Don't "fix" either to match the other.
+
+Workers serves assets with `.html` stripped, so `/master/vega.html` 307s to
+`/master/vega`. Iframes follow it; it is not a problem.
+
 ## Editing App.tsx — read this first
 
 The eight `src/<style>/App.tsx` files are **byte-identical apart from the

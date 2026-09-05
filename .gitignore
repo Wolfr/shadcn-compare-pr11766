@@ -7,3 +7,6 @@ dist/
 # misc
 *.log
 .DS_Store
+
+# deploy output
+dist/

@@ -68,13 +68,82 @@ function applyPalette(name: string) {
   document.head.append(element)
 }
 
+/**
+ * Tokens worth showing in the shell's variables panel — the three the PR moves
+ * between first, then the surfaces you need in order to judge them.
+ */
+const REPORTED_TOKENS = [
+  "--border",
+  "--input",
+  "--muted",
+  "--background",
+  "--card",
+  "--foreground",
+  "--muted-foreground",
+  "--primary",
+  "--ring",
+]
+
+/**
+ * Reads each token twice: the authored value (`oklch(...)`, possibly with an
+ * alpha) and what it actually paints as, resolved through a probe element so
+ * translucent tokens report the colour you really see.
+ */
+function readTokens() {
+  const computed = getComputedStyle(document.documentElement)
+  const probe = document.createElement("div")
+  probe.style.display = "none"
+  document.body.append(probe)
+
+  const tokens = REPORTED_TOKENS.map((name) => {
+    const declared = computed.getPropertyValue(name).trim()
+    probe.style.color = ""
+    probe.style.color = `var(${name})`
+    const resolved = getComputedStyle(probe).color
+    return { name, declared, resolved }
+  })
+
+  probe.remove()
+  return tokens
+}
+
+function reportTokens() {
+  if (window.parent === window) return
+  window.parent.postMessage(
+    {
+      type: "vars",
+      theme: document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light",
+      tokens: readTokens(),
+    },
+    "*"
+  )
+}
+
 export function installCompareBridge(storageKey = "theme") {
+  // The class flip and the injected palette both land asynchronously, so report
+  // on the next frame rather than inline.
+  const scheduleReport = () => requestAnimationFrame(() => reportTokens())
+
+  const observer = new MutationObserver(scheduleReport)
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  })
+
   window.addEventListener("message", (event) => {
     const data = event.data
     if (!data || typeof data !== "object") return
 
     if (data.type === "tokens" && typeof data.value === "string") {
       applyPalette(data.value)
+      scheduleReport()
+      return
+    }
+
+    if (data.type === "vars:request") {
+      scheduleReport()
       return
     }
 
@@ -89,4 +158,6 @@ export function installCompareBridge(storageKey = "theme") {
       })
     )
   })
+
+  scheduleReport()
 }

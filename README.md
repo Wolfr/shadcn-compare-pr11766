@@ -7,6 +7,10 @@ Left pane is master, right pane is master + the PR, for the same style and the
 same component. Built from the same compare shell as
 [`shadcn-compare`](../shadcn-compare).
 
+**Live demo: <https://shadcn-compare-pr11766.johan-457.workers.dev>**
+
+Or locally:
+
 ```bash
 npm run install:apps   # first time only
 npm run dev            # master :5290, pr :5291, shell :5292
@@ -67,6 +71,20 @@ apart:
   surface announces which token it reads. A diagnostic, not a plausible theme.
 
 Neither override is anything shadcn ships; they are review aids.
+
+### Variables panel
+
+The **vars** button next to the picker shows the live theme variables, read out
+of the master pane with `getComputedStyle` rather than hardcoded — so it always
+reflects what is actually painting. `--border`, `--input` and `--muted` are
+listed first and highlighted, since those are the three the PR moves between;
+the rest of the surfaces follow.
+
+Each row shows the authored value (hover for what it resolves to), and the
+swatch sits on a checkerboard so a translucent token reads as translucent —
+which is the whole point of the `bg-input/90` → `bg-muted` cases. The three key
+swatches are also mirrored on the button itself, so at `default` you can see at
+a glance that `--border` and `--input` are the same colour in light mode.
 
 ### Surface rows
 
@@ -138,6 +156,17 @@ skipped (they are listed in the report):
 - `cn-switch-aria`, `cn-field-label-aria`, `cn-drawer-popup` and `cn-bubble-*` —
   these belong to the `aria`/`base` bases or to components that are not
   installed here, so they are not applicable to this comparison.
+
+## Deploying
+
+```bash
+npm run build    # builds both apps into dist/{master,pr} and copies the shell
+npm run deploy   # wrangler deploy (static-assets-only Worker)
+```
+
+`compare.html` picks its iframe origins from the hostname: the two dev servers
+on localhost, and `/master` + `/pr` anywhere else. Each app is built with a
+matching `--base` so its assets resolve under that prefix.
 
 ## Layout
 
