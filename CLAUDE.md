@@ -52,7 +52,10 @@ The override uses `:root:root` / `:root:root.dark` selectors so it outranks both
 same control on `background`, a real `Card`, and a `bg-muted` panel — this is
 the only way to see the translucent → opaque consequence.
 
-**Variables panel** (`vars` button). `compare-bridge.ts` reports the resolved
+**Variables drawer** (`vars` button, or `v`). It is a flex sibling of `main`
+inside `.body`, deliberately *not* an absolutely-positioned popover — it shrinks
+the panes instead of covering them, and has no click-outside-to-close. Keep it
+that way; obscuring the components under comparison defeats the point. `compare-bridge.ts` reports the resolved
 values of a curated token list to the shell on load, on palette change, and
 whenever `documentElement`'s class list changes (a MutationObserver, since the
 theme flip is asynchronous). Values are read with `getComputedStyle` plus a

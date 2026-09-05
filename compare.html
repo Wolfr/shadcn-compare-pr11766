@@ -25,10 +25,15 @@
     .help:hover .tip, .help:focus-within .tip { opacity: 1; pointer-events: auto; }
     header .swatches { display: inline-flex; gap: 3px; align-items: center; margin-left: 2px; }
     header .swatches i { width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25); display: block; }
-    .vars { position: relative; display: inline-flex; }
-    .vars-panel { position: absolute; top: calc(100% + 8px); left: 0; z-index: 20; width: 360px; padding: 12px; background: #141414; border: 1px solid #333; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.6); }
+    /* A drawer rather than a popover: it takes layout space and shrinks the
+       panes, so it never covers the components being compared. */
+    .body { display: flex; height: calc(100% - 48px); }
+    .vars-panel { flex: 0 0 300px; overflow-y: auto; padding: 14px; background: #111; border-left: 1px solid #222; }
     .vars-panel[hidden] { display: none; }
-    .vars-panel h3 { margin: 0 0 8px; font-size: 11px; font-family: ui-monospace, monospace; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .vars-panel .vars-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .vars-panel .vars-close { background: none; border: none; color: #777; font-size: 15px; line-height: 1; padding: 0 2px; cursor: pointer; }
+    .vars-panel .vars-close:hover { color: #e5e5e5; }
+    .vars-panel h3 { margin: 0; font-size: 11px; font-family: ui-monospace, monospace; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
     .vars-panel table { width: 100%; border-collapse: collapse; font-family: ui-monospace, monospace; font-size: 11px; }
     .vars-panel td { padding: 3px 4px; vertical-align: middle; white-space: nowrap; }
     .vars-panel td.name { color: #ccc; }
@@ -39,7 +44,7 @@
     .vars-panel .chip { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25); display: block; }
     .vars-panel p { margin: 10px 0 0; font-size: 11px; line-height: 1.45; color: #777; }
     .vars-panel p code { background: #0b0b0b; border: 1px solid #2a2a2a; border-radius: 3px; padding: 0 3px; }
-    main { display: grid; grid-template-columns: repeat(2, 1fr); height: calc(100% - 48px); }
+    main { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, 1fr); height: 100%; }
     .pane { position: relative; display: flex; flex-direction: column; border-right: 1px solid #222; min-width: 0; }
     .pane:last-child { border-right: none; }
     .pane-label { position: absolute; top: 8px; right: 8px; z-index: 2; padding: 2px 8px; font-size: 11px; font-family: ui-monospace, monospace; background: rgba(0,0,0,.7); color: #fff; border-radius: 4px; pointer-events: none; }
@@ -52,14 +57,7 @@
     <select id="style" aria-label="Style"></select>
     <select id="route" aria-label="Component"></select>
     <button id="theme" aria-pressed="false">theme: light</button>
-    <span class="vars">
-      <select id="tokens" aria-label="Token palette"></select>
-      <div class="vars-panel" id="vars-panel" hidden>
-        <h3>Theme variables — <span id="vars-theme"></span></h3>
-        <table id="vars-table"></table>
-        <p id="vars-note"></p>
-      </div>
-    </span>
+    <select id="tokens" aria-label="Token palette"></select>
     <button id="vars-toggle" aria-expanded="false" aria-controls="vars-panel">vars <span class="swatches" id="vars-swatches"></span></button>
     <div class="toggles">
       <label><input type="checkbox" id="scroll-sync" checked> sync scroll</label>
@@ -85,10 +83,20 @@
       Pick a style and a component; <code>↑</code>/<code>↓</code> steps through components.
     </span></span>
   </header>
-  <main id="grid">
-    <div class="pane" data-pane="master"><span class="pane-label">master</span><iframe id="frame-master" title="master"></iframe></div>
-    <div class="pane" data-pane="pr"><span class="pane-label">PR #11766</span><iframe id="frame-pr" title="pr"></iframe></div>
-  </main>
+  <div class="body">
+    <main id="grid">
+      <div class="pane" data-pane="master"><span class="pane-label">master</span><iframe id="frame-master" title="master"></iframe></div>
+      <div class="pane" data-pane="pr"><span class="pane-label">PR #11766</span><iframe id="frame-pr" title="pr"></iframe></div>
+    </main>
+    <aside class="vars-panel" id="vars-panel" hidden aria-label="Theme variables">
+      <div class="vars-head">
+        <h3>Theme variables — <span id="vars-theme"></span></h3>
+        <button class="vars-close" id="vars-close" aria-label="Close variables">×</button>
+      </div>
+      <table id="vars-table"></table>
+      <p id="vars-note"></p>
+    </aside>
+  </div>
   <script>
     const STYLES = ["vega", "nova", "luma", "rhea", "lyra", "maia", "mira", "sera"];
     // Locally the two sides are separate Vite dev servers; in the deployed
@@ -124,6 +132,7 @@
     const varsThemeLabel = document.getElementById("vars-theme");
     const varsSwatches = document.getElementById("vars-swatches");
     const varsNote = document.getElementById("vars-note");
+    const varsClose = document.getElementById("vars-close");
     const frames = { master: document.getElementById("frame-master"), pr: document.getElementById("frame-pr") };
     const iframes = Object.values(frames);
 
@@ -284,22 +293,21 @@
     applyTheme();
     if (!PALETTES.some(([value]) => value === tokens)) tokens = "default";
     applyTokens();
+    setVarsOpen(store.get("vars", "false") === "true");
 
     styleSelect.addEventListener("change", () => loadStyle(styleSelect.value));
     routeSelect.addEventListener("change", () => setRoute(routeSelect.value));
-    varsToggle.addEventListener("click", () => {
-      const open = varsPanel.hidden;
+    // A drawer stays put until dismissed — no click-outside-to-close.
+    function setVarsOpen(open) {
       varsPanel.hidden = !open;
       varsToggle.setAttribute("aria-expanded", String(open));
+      varsToggle.setAttribute("aria-pressed", String(open));
+      store.set("vars", String(open));
       if (open) requestVars();
-    });
+    }
 
-    document.addEventListener("click", (event) => {
-      if (varsPanel.hidden) return;
-      if (varsPanel.contains(event.target) || varsToggle.contains(event.target)) return;
-      varsPanel.hidden = true;
-      varsToggle.setAttribute("aria-expanded", "false");
-    });
+    varsToggle.addEventListener("click", () => setVarsOpen(varsPanel.hidden));
+    varsClose.addEventListener("click", () => setVarsOpen(false));
 
     tokensSelect.addEventListener("change", () => {
       tokens = tokensSelect.value;
@@ -318,6 +326,7 @@
       if (event.key === "ArrowDown") { event.preventDefault(); shiftRoute("down"); }
       else if (event.key === "ArrowUp") { event.preventDefault(); shiftRoute("up"); }
       else if (event.key.toLowerCase() === "d") { themeButton.click(); }
+      else if (event.key.toLowerCase() === "v") { setVarsOpen(varsPanel.hidden); }
       else if (event.key.toLowerCase() === "t") {
         const index = PALETTES.findIndex(([value]) => value === tokens);
         tokens = PALETTES[(index + 1) % PALETTES.length][0];

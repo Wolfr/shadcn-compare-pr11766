@@ -18,7 +18,7 @@ npm run open           # http://localhost:5292/compare.html
 ```
 
 Style picker, component picker (`↑`/`↓` to step), light/dark toggle (`d`), token
-palette picker (`t`), synced scrolling. Components the PR actually touches are
+palette picker (`t`), variables drawer (`v`), synced scrolling. Components the PR actually touches are
 marked with `●` and hoisted to the top of the component picker.
 
 ## What the PR does
@@ -72,11 +72,13 @@ apart:
 
 Neither override is anything shadcn ships; they are review aids.
 
-### Variables panel
+### Variables drawer
 
-The **vars** button next to the picker shows the live theme variables, read out
-of the master pane with `getComputedStyle` rather than hardcoded — so it always
-reflects what is actually painting. `--border`, `--input` and `--muted` are
+The **vars** button (or `v`) opens a drawer on the right showing the live theme
+variables, read out of the master pane with `getComputedStyle` rather than
+hardcoded — so it always reflects what is actually painting. It is a drawer, not
+a popover: it takes layout space and shrinks the panes rather than covering the
+components you are comparing, and it stays open until you dismiss it. `--border`, `--input` and `--muted` are
 listed first and highlighted, since those are the three the PR moves between;
 the rest of the surfaces follow.
 
