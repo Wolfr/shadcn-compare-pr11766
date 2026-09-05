@@ -1,0 +1,218 @@
+diff -ru a/apps/v4/registry/styles/style-luma.css b/apps/v4/registry/styles/style-luma.css
+--- a/apps/v4/registry/styles/style-luma.css	2026-09-05 17:58:55
++++ b/apps/v4/registry/styles/style-luma.css	2026-09-05 17:58:55
+@@ -146,7 +146,7 @@
+   }
+ 
+   .cn-button-group-separator {
+-    @apply bg-input;
++    @apply bg-border;
+   }
+ 
+   /* MARK: Input */
+@@ -913,7 +913,7 @@
+ 
+   /* MARK: Kbd */
+   .cn-kbd {
+-    @apply bg-muted text-muted-foreground in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 h-5.5 w-fit min-w-5.5 gap-1 rounded-lg px-1.5 font-sans text-xs font-medium [&_svg:not([class*='size-'])]:size-3 in-data-[slot=input-group]:bg-input;
++    @apply bg-muted text-muted-foreground in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 h-5.5 w-fit min-w-5.5 gap-1 rounded-lg px-1.5 font-sans text-xs font-medium [&_svg:not([class*='size-'])]:size-3 in-data-[slot=input-group]:bg-muted;
+   }
+ 
+   .cn-kbd-group {
+@@ -1477,7 +1477,7 @@
+   }
+ 
+   .cn-bubble-variant-outline {
+-    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30;
++    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted;
+   }
+ 
+   .cn-bubble-variant-ghost {
+diff -ru a/apps/v4/registry/styles/style-lyra.css b/apps/v4/registry/styles/style-lyra.css
+--- a/apps/v4/registry/styles/style-lyra.css	2026-09-05 17:58:55
++++ b/apps/v4/registry/styles/style-lyra.css	2026-09-05 17:58:55
+@@ -212,7 +212,7 @@
+   }
+ 
+   .cn-button-group-separator {
+-    @apply bg-input;
++    @apply bg-border;
+   }
+ 
+   /* MARK: Calendar */
+@@ -1456,7 +1456,7 @@
+   }
+ 
+   .cn-bubble-variant-outline {
+-    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30;
++    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted;
+   }
+ 
+   .cn-bubble-variant-ghost {
+diff -ru a/apps/v4/registry/styles/style-maia.css b/apps/v4/registry/styles/style-maia.css
+--- a/apps/v4/registry/styles/style-maia.css	2026-09-05 17:58:55
++++ b/apps/v4/registry/styles/style-maia.css	2026-09-05 17:58:55
+@@ -105,7 +105,7 @@
+   }
+ 
+   .cn-badge-variant-outline {
+-    @apply border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground bg-input/30;
++    @apply border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground bg-muted/30;
+   }
+ 
+   .cn-badge-variant-destructive {
+@@ -224,7 +224,7 @@
+   }
+ 
+   .cn-button-group-separator {
+-    @apply bg-input;
++    @apply bg-border;
+   }
+ 
+   /* MARK: Calendar */
+@@ -1478,7 +1478,7 @@
+   }
+ 
+   .cn-bubble-variant-outline {
+-    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30;
++    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted;
+   }
+ 
+   .cn-bubble-variant-ghost {
+diff -ru a/apps/v4/registry/styles/style-mira.css b/apps/v4/registry/styles/style-mira.css
+--- a/apps/v4/registry/styles/style-mira.css	2026-09-05 17:58:55
++++ b/apps/v4/registry/styles/style-mira.css	2026-09-05 17:58:55
+@@ -105,7 +105,7 @@
+   }
+ 
+   .cn-badge-variant-outline {
+-    @apply border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground bg-input/20 dark:bg-input/30;
++    @apply border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground bg-muted/20 dark:bg-muted/30;
+   }
+ 
+   .cn-badge-variant-destructive {
+@@ -224,7 +224,7 @@
+   }
+ 
+   .cn-button-group-separator {
+-    @apply bg-input;
++    @apply bg-border;
+   }
+ 
+   /* MARK: Calendar */
+@@ -1483,7 +1483,7 @@
+   }
+ 
+   .cn-bubble-variant-outline {
+-    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30;
++    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted;
+   }
+ 
+   .cn-bubble-variant-ghost {
+diff -ru a/apps/v4/registry/styles/style-nova.css b/apps/v4/registry/styles/style-nova.css
+--- a/apps/v4/registry/styles/style-nova.css	2026-09-05 17:58:55
++++ b/apps/v4/registry/styles/style-nova.css	2026-09-05 17:58:55
+@@ -224,7 +224,7 @@
+   }
+ 
+   .cn-button-group-separator {
+-    @apply bg-input;
++    @apply bg-border;
+   }
+ 
+   /* MARK: Calendar */
+@@ -1481,7 +1481,7 @@
+   }
+ 
+   .cn-bubble-variant-outline {
+-    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30;
++    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted;
+   }
+ 
+   .cn-bubble-variant-ghost {
+diff -ru a/apps/v4/registry/styles/style-rhea.css b/apps/v4/registry/styles/style-rhea.css
+--- a/apps/v4/registry/styles/style-rhea.css	2026-09-05 17:58:55
++++ b/apps/v4/registry/styles/style-rhea.css	2026-09-05 17:58:55
+@@ -146,7 +146,7 @@
+   }
+ 
+   .cn-button-group-separator {
+-    @apply bg-input;
++    @apply bg-border;
+   }
+ 
+   /* MARK: Input */
+@@ -913,7 +913,7 @@
+ 
+   /* MARK: Kbd */
+   .cn-kbd {
+-    @apply bg-muted text-muted-foreground in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 h-5 w-fit min-w-5 gap-1 rounded-lg px-1 font-sans text-xs font-medium [&_svg:not([class*='size-'])]:size-3 in-data-[slot=input-group]:bg-input;
++    @apply bg-muted text-muted-foreground in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 h-5 w-fit min-w-5 gap-1 rounded-lg px-1 font-sans text-xs font-medium [&_svg:not([class*='size-'])]:size-3 in-data-[slot=input-group]:bg-muted;
+   }
+ 
+   .cn-kbd-group {
+@@ -1477,7 +1477,7 @@
+   }
+ 
+   .cn-bubble-variant-outline {
+-    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30;
++    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted;
+   }
+ 
+   .cn-bubble-variant-ghost {
+diff -ru a/apps/v4/registry/styles/style-sera.css b/apps/v4/registry/styles/style-sera.css
+--- a/apps/v4/registry/styles/style-sera.css	2026-09-05 17:58:55
++++ b/apps/v4/registry/styles/style-sera.css	2026-09-05 17:58:55
+@@ -216,11 +216,11 @@
+   }
+ 
+   .cn-button-group-text {
+-    @apply gap-2 border border-transparent border-b-input bg-transparent px-2.5 text-xs font-semibold [&_svg:not([class*='size-'])]:size-3.5 group-has-[>[data-variant=outline]]/button-group:border-border uppercase;
++    @apply gap-2 border border-transparent border-b-border bg-transparent px-2.5 text-xs font-semibold [&_svg:not([class*='size-'])]:size-3.5 group-has-[>[data-variant=outline]]/button-group:border-border uppercase;
+   }
+ 
+   .cn-button-group-separator {
+-    @apply bg-input;
++    @apply bg-border;
+   }
+ 
+   /* MARK: Calendar */
+@@ -769,7 +769,7 @@
+ 
+   /* MARK: Kbd */
+   .cn-kbd {
+-    @apply bg-muted text-muted-foreground in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 h-5.5 w-fit min-w-5.5 gap-1 rounded-none px-1.5 font-sans text-xs font-medium [&_svg:not([class*='size-'])]:size-3 in-data-[slot=input-group]:bg-input;
++    @apply bg-muted text-muted-foreground in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 h-5.5 w-fit min-w-5.5 gap-1 rounded-none px-1.5 font-sans text-xs font-medium [&_svg:not([class*='size-'])]:size-3 in-data-[slot=input-group]:bg-muted;
+   }
+ 
+   .cn-kbd-group {
+@@ -1468,7 +1468,7 @@
+   }
+ 
+   .cn-bubble-variant-outline {
+-    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30;
++    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted;
+   }
+ 
+   .cn-bubble-variant-ghost {
+diff -ru a/apps/v4/registry/styles/style-vega.css b/apps/v4/registry/styles/style-vega.css
+--- a/apps/v4/registry/styles/style-vega.css	2026-09-05 17:58:55
++++ b/apps/v4/registry/styles/style-vega.css	2026-09-05 17:58:55
+@@ -220,7 +220,7 @@
+   }
+ 
+   .cn-button-group-separator {
+-    @apply bg-input;
++    @apply bg-border;
+   }
+ 
+   /* MARK: Calendar */
+@@ -1481,7 +1481,7 @@
+   }
+ 
+   .cn-bubble-variant-outline {
+-    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30;
++    @apply *:data-[slot=bubble-content]:bg-background *:data-[slot=bubble-content]:border-border [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted;
+   }
+ 
+   .cn-bubble-variant-ghost {

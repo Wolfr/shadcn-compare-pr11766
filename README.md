@@ -183,6 +183,13 @@ Each app keeps every style in its own folder (`src/<style>/`) with its own
 `index.css`, `App.tsx` and `components/ui`, and one HTML entry per style, so a
 single Vite dev server serves all eight and only compiles the one you open.
 
+## An alternative patch
+
+`scripts/alt-11766.diff` is a narrower version of the PR — 22 rules instead of
+74 — that moves only genuinely non-interactive surfaces off `--input` and leaves
+every control on it. `scripts/ALTERNATIVE.md` has the reasoning and the
+per-rule decisions; `scripts/styles/alt/` holds the resulting style sheets.
+
 ## Attribution
 
 The components under `apps/*/src/*/components/ui`, the style sheets under
