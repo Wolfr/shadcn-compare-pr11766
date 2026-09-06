@@ -13,7 +13,7 @@ Or locally:
 
 ```bash
 npm run install:apps   # first time only
-npm run dev            # master :5290, pr :5291, shell :5292
+npm run dev            # master :5290, pr :5291, ours :5293, shell :5292
 npm run open           # http://localhost:5292/compare.html
 ```
 
@@ -189,6 +189,15 @@ single Vite dev server serves all eight and only compiles the one you open.
 74 — that moves only genuinely non-interactive surfaces off `--input` and leaves
 every control on it. `scripts/ALTERNATIVE.md` has the reasoning and the
 per-rule decisions; `scripts/styles/alt/` holds the resulting style sheets.
+
+It is a third build in the comparison (`apps/alt`, **ours**), generated the same
+way as the PR side, and **either pane can show any of the three** — so you can
+put ours next to master (nearly identical: only the separator, kbd, badge and
+button-group text move) or next to the PR. Regenerate it with:
+
+```bash
+cd scripts && bun apply-pr.ts alt
+```
 
 ## Attribution
 

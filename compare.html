@@ -54,6 +54,8 @@
 <body>
   <header>
     <strong>PR #11766 vs master</strong>
+    <select id="left" aria-label="Left pane source"></select>
+    <select id="right" aria-label="Right pane source"></select>
     <select id="style" aria-label="Style"></select>
     <select id="route" aria-label="Component"></select>
     <button id="theme" aria-pressed="false">theme: light</button>
@@ -85,8 +87,8 @@
   </header>
   <div class="body">
     <main id="grid">
-      <div class="pane" data-pane="master"><span class="pane-label">master</span><iframe id="frame-master" title="master"></iframe></div>
-      <div class="pane" data-pane="pr"><span class="pane-label">PR #11766</span><iframe id="frame-pr" title="pr"></iframe></div>
+      <div class="pane"><span class="pane-label" id="label-left"></span><iframe id="frame-left" title="left pane"></iframe></div>
+      <div class="pane"><span class="pane-label" id="label-right"></span><iframe id="frame-right" title="right pane"></iframe></div>
     </main>
     <aside class="vars-panel" id="vars-panel" hidden aria-label="Theme variables">
       <div class="vars-head">
@@ -103,8 +105,16 @@
     // build they are static bundles mounted under /master and /pr.
     const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
     const ORIGINS = LOCAL
-      ? { master: "http://localhost:5290", pr: "http://localhost:5291" }
-      : { master: "/master", pr: "/pr" };
+      ? { master: "http://localhost:5290", pr: "http://localhost:5291", alt: "http://localhost:5293" }
+      : { master: "/master", pr: "/pr", alt: "/alt" };
+
+    // Either pane can show any of the three builds, so you can put the
+    // alternative next to master (should be near-identical) or next to the PR.
+    const SOURCES = [
+      ["master", "master"],
+      ["pr", "PR #11766"],
+      ["alt", "ours"],
+    ];
     // Components the PR actually touches, hoisted to the top of the picker.
     const TOUCHED = ["button", "button-group", "toggle", "toggle-group", "switch", "slider", "badge", "kbd", "field", "input-group", "calendar"];
     const ROUTES = ["all","button","button-group","toggle","toggle-group","badge","kbd","spinner","alert","form","field","input","input-group","input-otp","label","textarea","native-select","combobox","checkbox","radio-group","switch","slider","card","item","empty","tabs","accordion","collapsible","avatar","progress","skeleton","separator","aspect-ratio","scroll-area","resizable","table","chart","calendar","carousel","breadcrumb","pagination","navigation-menu","menubar","dropdown-menu","context-menu","command","dialog","alert-dialog","sheet","drawer","popover","hover-card","tooltip","sonner","direction","sidebar"];
@@ -133,8 +143,11 @@
     const varsSwatches = document.getElementById("vars-swatches");
     const varsNote = document.getElementById("vars-note");
     const varsClose = document.getElementById("vars-close");
-    const frames = { master: document.getElementById("frame-master"), pr: document.getElementById("frame-pr") };
+    const frames = { left: document.getElementById("frame-left"), right: document.getElementById("frame-right") };
+    const labels = { left: document.getElementById("label-left"), right: document.getElementById("label-right") };
+    const sourceSelects = { left: document.getElementById("left"), right: document.getElementById("right") };
     const iframes = Object.values(frames);
+    const sources = { left: "master", right: "pr" };
 
     const store = {
       get(name, fallback) {
@@ -144,6 +157,23 @@
         try { localStorage.setItem(`${KEY}:${name}`, value); } catch {}
       },
     };
+
+    for (const side of ["left", "right"]) {
+      const stored = store.get(`source:${side}`, sources[side]);
+      if (SOURCES.some(([value]) => value === stored)) sources[side] = stored;
+      SOURCES.forEach(([value, text]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = `${side}: ${text}`;
+        sourceSelects[side].append(option);
+      });
+      sourceSelects[side].value = sources[side];
+      sourceSelects[side].addEventListener("change", () => {
+        sources[side] = sourceSelects[side].value;
+        store.set(`source:${side}`, sources[side]);
+        loadStyle(styleSelect.value);
+      });
+    }
 
     STYLES.forEach(style => {
       const option = document.createElement("option");
@@ -251,7 +281,7 @@
 
     function requestVars() {
       try {
-        frames.master.contentWindow?.postMessage({ type: "vars:request" }, "*");
+        frames.left.contentWindow?.postMessage({ type: "vars:request" }, "*");
       } catch {}
     }
 
@@ -259,7 +289,8 @@
       styleSelect.value = style;
       store.set("style", style);
       for (const [side, frame] of Object.entries(frames)) {
-        frame.src = `${ORIGINS[side]}/${style}.html`;
+        frame.src = `${ORIGINS[sources[side]]}/${style}.html`;
+        labels[side].textContent = SOURCES.find(([v]) => v === sources[side])[1];
       }
     }
 
@@ -338,7 +369,7 @@
       const data = event.data;
       if (!data || typeof data !== "object") return;
       if (data.type === "vars" && Array.isArray(data.tokens)) {
-        if (event.source === frames.master.contentWindow) renderVars(data);
+        if (event.source === frames.left.contentWindow) renderVars(data);
         return;
       }
       if (data.type === "route" && typeof data.value === "string") {

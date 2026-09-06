@@ -113,9 +113,20 @@ every copy in the loop. This has already happened once.
 `App.tsx` imports `cn` from nowhere — it uses plain class strings and template
 literals. Keep it that way rather than adding the import.
 
+## Three builds, not two
+
+`apps/master` (:5290), `apps/pr` (:5291) and `apps/alt` (:5293, labelled
+**ours**). `apply-pr.ts` takes a variant argument — `bun apply-pr.ts` for the
+PR, `bun apply-pr.ts alt` for the alternative — reading `scripts/styles/<variant>`
+and writing `apps/<variant>`. Each writes its own substitutions report.
+
+Either pane picks its source, so the pane ids are `frame-left`/`frame-right`,
+not `frame-master`/`frame-pr`. The variables drawer always reads the **left**
+pane.
+
 ## What `apply-pr.ts` owns
 
-`scripts/apply-pr.ts` rewrites **only** `apps/pr/src/<style>/components/ui/`.
+`scripts/apply-pr.ts` rewrites **only** `apps/<variant>/src/<style>/components/ui/`.
 Everything else in `apps/pr` — `App.tsx`, `compare-bridge.ts`, `index.css` — is
 hand-maintained and must be kept in sync with `apps/master` manually. Editing
 those files is safe; re-running the script will not clobber them.

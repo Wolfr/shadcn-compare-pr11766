@@ -2,14 +2,16 @@
   "name": "shadcn-compare-pr11766",
   "private": true,
   "scripts": {
-    "install:apps": "npm --prefix apps/master install && npm --prefix apps/pr install",
-    "dev": "concurrently -k -n master,pr,page -c blue,magenta,bgGreen \"npm --prefix apps/master run dev\" \"npm --prefix apps/pr run dev\" \"serve -l 5292 .\"",
+    "install:apps": "npm --prefix apps/master install && npm --prefix apps/pr install && npm --prefix apps/alt install",
+    "dev": "concurrently -k -n master,pr,alt,page -c blue,magenta,cyan,bgGreen \"npm --prefix apps/master run dev\" \"npm --prefix apps/pr run dev\" \"npm --prefix apps/alt run dev\" \"serve -l 5292 .\"",
     "dev:master": "npm --prefix apps/master run dev",
     "dev:pr": "npm --prefix apps/pr run dev",
     "open": "open http://localhost:5292/compare.html",
     "apply-pr": "cd scripts && bun apply-pr.ts",
     "build": "./scripts/build-site.sh",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "dev:alt": "npm --prefix apps/alt run dev",
+    "apply-alt": "cd scripts && bun apply-pr.ts alt"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

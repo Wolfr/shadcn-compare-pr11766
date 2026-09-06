@@ -8,7 +8,10 @@
  * installed component is the master one with the utilities that changed swapped
  * in place — no registry build required.
  *
- * Usage: cd scripts && bun apply-pr.ts
+ * Usage: cd scripts && bun apply-pr.ts [variant]
+ *
+ * `variant` selects which style sheets to diff master against and which app to
+ * write: "pr" (default, PR #11766) or "alt" (the narrower alternative).
  */
 import {
   existsSync,
@@ -25,6 +28,11 @@ import { createStyleMap } from "./create-style-map"
 const here = dirname(fileURLToPath(import.meta.url))
 const root = join(here, "..")
 const STYLES = ["vega", "nova", "luma", "rhea", "lyra", "maia", "mira", "sera"]
+
+const variant = process.argv[2] ?? "pr"
+if (!["pr", "alt"].includes(variant)) {
+  throw new Error(`unknown variant "${variant}" — expected "pr" or "alt"`)
+}
 
 const cnClassFiles: Record<string, string[]> = JSON.parse(
   readFileSync(join(here, "cn-class-files.json"), "utf8")
@@ -44,7 +52,7 @@ for (const style of STYLES) {
     readFileSync(join(here, "styles/master", `style-${style}.css`), "utf8")
   )
   const pr = createStyleMap(
-    readFileSync(join(here, "styles/pr", `style-${style}.css`), "utf8")
+    readFileSync(join(here, `styles/${variant}`, `style-${style}.css`), "utf8")
   )
 
   const changed = Object.keys(pr).filter((key) => master[key] !== pr[key])
@@ -80,7 +88,7 @@ for (const style of STYLES) {
   }
 
   const fromDir = join(root, "apps/master/src", style, "components/ui")
-  const toDir = join(root, "apps/pr/src", style, "components/ui")
+  const toDir = join(root, `apps/${variant}/src`, style, "components/ui")
   mkdirSync(toDir, { recursive: true })
 
   for (const [file, fileEdits] of edits) {
@@ -197,8 +205,12 @@ for (const style of STYLES) {
   }
 }
 
+const title =
+  variant === "pr"
+    ? "PR #11766 style-token substitutions"
+    : "Alternative patch style-token substitutions"
 writeFileSync(
-  join(here, "substitutions-report.md"),
-  `# PR #11766 style-token substitutions\n${report.join("\n")}\n`
+  join(here, `substitutions-report${variant === "pr" ? "" : `-${variant}`}.md`),
+  `# ${title}\n${report.join("\n")}\n`
 )
 console.log(`applied ${changeCount} substitutions`)
